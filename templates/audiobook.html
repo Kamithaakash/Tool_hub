@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audiobook Studio</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='audiobook.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://unpkg.com/wavesurfer.js@7/dist/wavesurfer.min.js"></script>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+        
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fa-solid fa-sun" id="themeIcon"></i>
+            <span id="themeText">Light Mode</span>
+        </button>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <div class="header-section">
+            <h1>Audiobook Studio</h1>
+        </div>
+
+        <div class="card">
+            
+            <div class="form-group">
+                <label>Select Narrator</label>
+                <div class="custom-select-container">
+                    <select id="voiceSelect" class="real-select">
+                        <option value="en-GB-RyanNeural">🇬🇧 Ryan (British Male)</option>
+                        <option value="en-GB-SoniaNeural">🇬🇧 Sonia (British Female)</option>
+                        <option value="en-US-ChristopherNeural">🇺🇸 Christopher (US Male)</option>
+                        <option value="en-US-AriaNeural">🇺🇸 Aria (US Female)</option>
+                        <option value="si-LK-SameeraNeural">🇱🇰 Sameera (Sinhala Male)</option>
+                        <option value="si-LK-ThiliniNeural">🇱🇰 Thilini (Sinhala Female)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Reading Speed</label>
+                <div class="custom-select-container">
+                    <select id="speedSelect" class="real-select">
+                        <option value="-10%">🐢 Slow (-10%)</option>
+                        <option value="+0%" selected>😐 Normal</option>
+                        <option value="+10%">🏃 Fast (+10%)</option>
+                        <option value="+25%">🐇 Very Fast (+25%)</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>Upload Text Script</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="fileInput" class="file-upload-input" accept=".txt" onchange="updateFileName()">
+                    <div class="file-upload-box">
+                        <i class="fa-solid fa-cloud-arrow-up file-icon"></i>
+                        <span class="file-text" id="fileLabel">Click or Drag .txt file here</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="primary-btn" id="convertBtn" onclick="convert()">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Generate Audio
+            </button>
+            
+            <p id="status" style="text-align: center; margin-top: 15px; color: var(--text-sub);"></p>
+
+            <div id="resultArea" class="hidden" style="margin-top: 30px;">
+                <h3 style="color: var(--primary); text-align: center; margin-bottom:15px;">Audio Ready!</h3>
+                
+                <div class="waveform-container">
+                    <button id="playPauseBtn" onclick="togglePlay()">
+                        <i class="fa-solid fa-play"></i>
+                    </button>
+                    <div id="waveform"></div>
+                </div>
+
+                <br>
+                <div style="text-align: center;">
+                    <a id="downloadLink" href="#" style="color: var(--primary); font-weight: bold; text-decoration: none;">
+                        <i class="fa-solid fa-download"></i> Download MP3
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- GLOBAL VARIABLES ---
+        let wavesurfer;
+        let currentAudioBlobUrl = null; // Stores the file so we don't lose it
+
+        // --- PAGE FADE IN ---
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+            initWaveSurfer();
+        });
+
+        // --- WAVEFORM INITIALIZATION (Fixed) ---
+        function initWaveSurfer() {
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+            
+            // 1. SAVE STATE (Before destroying the old player)
+            let wasPlaying = false;
+            let previousTime = 0;
+            
+            if (wavesurfer) {
+                wasPlaying = wavesurfer.isPlaying();
+                previousTime = wavesurfer.getCurrentTime(); // Remember where we were
+                wavesurfer.destroy();
+            }
+
+            // 2. CREATE NEW PLAYER (With new theme colors)
+            wavesurfer = WaveSurfer.create({
+                container: '#waveform',
+                waveColor: isDark ? '#4b5563' : '#a1a1aa',
+                progressColor: isDark ? '#60a5fa' : '#2563eb',
+                cursorColor: isDark ? '#93c5fd' : '#1d4ed8',
+                barWidth: 3,
+                barRadius: 3,
+                cursorWidth: 2,
+                height: 50,
+                barGap: 3,
+                responsive: true,
+                normalize: true,
+            });
+
+            // 3. RESTORE AUDIO (If we had one loaded)
+            if (currentAudioBlobUrl) {
+                wavesurfer.load(currentAudioBlobUrl);
+                
+                // Wait for it to load, then jump to previous spot
+                wavesurfer.once('ready', () => {
+                    wavesurfer.setTime(previousTime);
+                    if (wasPlaying) {
+                        wavesurfer.play();
+                    }
+                    updatePlayButton();
+                });
+            }
+
+            // Event: Reset button when finished
+            wavesurfer.on('finish', () => {
+                document.getElementById('playPauseBtn').innerHTML = '<i class="fa-solid fa-play"></i>';
+            });
+        }
+
+        // --- PLAY/PAUSE FUNCTION ---
+        function togglePlay() {
+            if (!wavesurfer) return;
+            wavesurfer.playPause();
+            updatePlayButton();
+        }
+
+        function updatePlayButton() {
+            const btn = document.getElementById('playPauseBtn');
+            // Small timeout to ensure state is updated
+            setTimeout(() => {
+                if (wavesurfer.isPlaying()) {
+                    btn.innerHTML = '<i class="fa-solid fa-pause"></i>';
+                } else {
+                    btn.innerHTML = '<i class="fa-solid fa-play"></i>';
+                }
+            }, 50);
+        }
+
+        // --- CONVERT LOGIC (Updated to save Blob URL) ---
+        async function convert() {
+            const file = document.getElementById('fileInput').files[0];
+            const voice = document.getElementById('voiceSelect').value;
+            const rate = document.getElementById('speedSelect').value;
+            const status = document.getElementById('status');
+            const btn = document.getElementById('convertBtn');
+            const resultArea = document.getElementById('resultArea');
+            const playPauseBtn = document.getElementById('playPauseBtn');
+
+            if (!file) { alert("Please upload a file"); return; }
+
+            // UI Loading State
+            status.innerText = "Streaming audio... Please wait.";
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            resultArea.classList.add('hidden');
+            playPauseBtn.innerHTML = '<i class="fa-solid fa-play"></i>';
+
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('voice', voice);
+            formData.append('rate', rate);
+
+            try {
+                const response = await fetch('/api/convert', { method: 'POST', body: formData });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    // Save the URL to our global variable!
+                    currentAudioBlobUrl = URL.createObjectURL(blob);
+
+                    // Update UI
+                    status.innerText = "";
+                    resultArea.classList.remove('hidden');
+                    
+                    // Load into WaveSurfer
+                    wavesurfer.load(currentAudioBlobUrl);
+                    
+                    wavesurfer.once('ready', () => {
+                        wavesurfer.play();
+                        updatePlayButton();
+                    });
+
+                    const downloadLink = document.getElementById('downloadLink');
+                    downloadLink.href = currentAudioBlobUrl;
+                    downloadLink.download = "audiobook_" + new Date().getTime() + ".mp3";
+
+                } else {
+                    const errorData = await response.json();
+                    status.innerText = "Error: " + (errorData.error || "Unknown Error");
+                }
+
+            } catch (e) {
+                status.innerText = "Network Error: " + e.message;
+            }
+            
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Audio';
+        }
+
+        // --- THEME LOGIC (Unchanged) ---
+        const htmlEl = document.documentElement;
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        if (localStorage.getItem('theme') === 'dark') setTheme('dark');
+        else setTheme('light');
+
+        function toggleTheme() {
+            const current = htmlEl.getAttribute('data-theme');
+            if (current === 'dark') setTheme('light');
+            else setTheme('dark');
+        }
+
+        function setTheme(mode) {
+            htmlEl.setAttribute('data-theme', mode);
+            localStorage.setItem('theme', mode);
+            
+            if (mode === 'dark') {
+                themeIcon.className = "fa-solid fa-sun";
+                themeText.innerText = "Light Mode";
+            } else {
+                themeIcon.className = "fa-solid fa-moon";
+                themeText.innerText = "Dark Mode";
+            }
+            
+            // This re-initialization is now SAFE
+            initWaveSurfer();
+        }
+
+        // File Input & Dropdown UI Helpers
+        function updateFileName() {
+            const input = document.getElementById('fileInput');
+            const label = document.getElementById('fileLabel');
+            if (input.files.length > 0) {
+                label.innerText = "📄 " + input.files[0].name;
+                label.classList.add('active');
+            } else {
+                label.innerText = "Click or Drag .txt file here";
+                label.classList.remove('active');
+            }
+        }
+
+        function initCustomSelects() {
+            const containers = document.getElementsByClassName("custom-select-container");
+            for (let i = 0; i < containers.length; i++) {
+                const realSelect = containers[i].getElementsByTagName("select")[0];
+                const selectedDiv = document.createElement("DIV");
+                selectedDiv.setAttribute("class", "select-selected");
+                selectedDiv.innerHTML = realSelect.options[realSelect.selectedIndex].innerHTML;
+                containers[i].appendChild(selectedDiv);
+                const listDiv = document.createElement("DIV");
+                listDiv.setAttribute("class", "select-items");
+                for (let j = 0; j < realSelect.length; j++) {
+                    const optionDiv = document.createElement("DIV");
+                    optionDiv.innerHTML = realSelect.options[j].innerHTML;
+                    optionDiv.addEventListener("click", function() {
+                        realSelect.selectedIndex = j;
+                        selectedDiv.innerHTML = this.innerHTML;
+                        const sameAsSelected = listDiv.getElementsByClassName("same-as-selected");
+                        for (let k = 0; k < sameAsSelected.length; k++) {
+                            sameAsSelected[k].removeAttribute("class");
+                        }
+                        this.setAttribute("class", "same-as-selected");
+                        selectedDiv.click();
+                    });
+                    listDiv.appendChild(optionDiv);
+                }
+                containers[i].appendChild(listDiv);
+                selectedDiv.addEventListener("click", function(e) {
+                    e.stopPropagation();
+                    closeAllSelects(this);
+                    listDiv.classList.toggle("show");
+                    this.classList.toggle("select-arrow-active");
+                });
+            }
+        }
+        function closeAllSelects(elmnt) {
+            const items = document.getElementsByClassName("select-items");
+            const selected = document.getElementsByClassName("select-selected");
+            for (let i = 0; i < selected.length; i++) {
+                if (elmnt != selected[i]) selected[i].classList.remove("select-arrow-active");
+            }
+            for (let i = 0; i < items.length; i++) {
+                if (elmnt != items[i].previousSibling) items[i].classList.remove("show");
+            }
+        }
+        document.addEventListener("click", closeAllSelects);
+        initCustomSelects();
+    </script>
+</body>
+</html>

@@ -1,0 +1,111 @@
+/* --- Particle Canvas (Background) --- */
+#particle-canvas {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1; pointer-events: none;
+}
+
+/* --- Header Typography --- */
+.header-section { text-align: center; margin-bottom: 4rem; position: relative; }
+.header-section h1 { 
+    font-size: 3.5rem; font-weight: 800; margin-bottom: 1rem; letter-spacing: -1px;
+    background: linear-gradient(135deg, var(--primary) 0%, #8b5cf6 100%);
+    -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;
+    animation: fadeInDown 0.8s ease-out;
+}
+.header-section p {
+    font-size: 1.1rem; color: var(--text-sub); max-width: 600px; margin: 0 auto;
+    line-height: 1.6; animation: fadeInUp 0.8s ease-out 0.2s backwards;
+}
+
+/* --- Grid Layout --- */
+.grid-menu {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 1rem;
+}
+
+/* --- MODERN GLASS CARDS --- */
+.card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.6); /* Default Glass */
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 1.5rem;
+    padding: 2.5rem;
+    text-decoration: none;
+    display: flex; flex-direction: column; align-items: flex-start;
+    height: 100%;
+    backdrop-filter: blur(12px);
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* Bouncy transition */
+    overflow: hidden;
+}
+
+/* Dark mode adjustments for glass */
+[data-theme="dark"] .card {
+    background: rgba(30, 41, 59, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* --- HOVER EFFECTS (The "Tiny Changes") --- */
+.card:hover {
+    transform: translateY(-8px) scale(1.02);
+    border-color: var(--primary);
+    box-shadow: 0 20px 40px -10px rgba(37, 99, 235, 0.2); /* Soft Blue Glow */
+}
+[data-theme="dark"] .card:hover {
+    box-shadow: 0 20px 40px -10px rgba(59, 130, 246, 0.3);
+}
+
+/* Soft background gradient on hover */
+.card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05) 0%, transparent 100%);
+    opacity: 0; transition: 0.4s;
+    z-index: -1;
+}
+.card:hover::before { opacity: 1; }
+
+/* --- ICON STYLING --- */
+.card-icon-box {
+    width: 56px; height: 56px;
+    background: rgba(37, 99, 235, 0.1);
+    color: var(--primary);
+    border-radius: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.5rem; margin-bottom: 1.5rem;
+    transition: 0.4s ease;
+}
+/* Icon fills with color on hover */
+.card:hover .card-icon-box { 
+    background: var(--primary); 
+    color: white; 
+    transform: rotate(-5deg) scale(1.1); 
+    box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+}
+
+.card h3 { font-size: 1.35rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.75rem; transition: 0.3s; }
+.card:hover h3 { color: var(--primary); }
+.card p { font-size: 0.95rem; color: var(--text-sub); line-height: 1.6; }
+
+/* --- "COMING SOON" BADGE --- */
+.badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 99px;
+    font-size: 0.75rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 1rem;
+}
+.badge-soon { background: rgba(100, 116, 139, 0.1); color: var(--text-sub); border: 1px solid var(--card-border); }
+.badge-new { background: rgba(37, 99, 235, 0.1); color: var(--primary); border: 1px solid rgba(37, 99, 235, 0.2); }
+
+/* Disabled State */
+.card.disabled { opacity: 0.7; cursor: not-allowed; }
+.card.disabled:hover { transform: none; box-shadow: none; border-color: var(--card-border); }
+.card.disabled:hover .card-icon-box { background: rgba(37, 99, 235, 0.1); color: var(--primary); transform: none; box-shadow: none; }
+.card.disabled:hover h3 { color: var(--text-main); }
+
+/* Animations */
+@keyframes fadeInDown { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }

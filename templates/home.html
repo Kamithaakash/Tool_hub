@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSuite AI</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <canvas id="particle-canvas"></canvas>
+
+    <nav class="navbar">
+        <a href="/" class="logo"><i class="fa-solid fa-layer-group"></i> WebSuite AI</a>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fa-solid fa-sun" id="themeIcon"></i>
+            <span id="themeText">Light Mode</span>
+        </button>
+    </nav>
+
+    <div class="container">
+        <div class="header-section">
+            <h1>Creative Tools</h1>
+            <p>Next-generation AI tools for content creators. Select a module below to begin.</p>
+        </div>
+
+        <div class="grid-menu">
+            
+            <div class="card" onclick="transitionTo('/audiobook')" style="cursor: pointer;">
+                <div style="display:flex; justify-content:space-between; width:100%; align-items: flex-start;">
+                    <div class="card-icon-box"><i class="fa-solid fa-headphones-simple"></i></div>
+                    <span class="badge badge-new">Active</span>
+                </div>
+                <h3>Audiobook Studio</h3>
+                <p>Convert text into professional, human-like speech using Neural AI.</p>
+            </div>
+
+            <div class="card disabled">
+                <div style="display:flex; justify-content:space-between; width:100%; align-items: flex-start;">
+                    <div class="card-icon-box"><i class="fa-solid fa-file-arrow-up"></i></div>
+                    <span class="badge badge-soon">Soon</span>
+                </div>
+                <h3>File Converter</h3>
+                <p>Universal converter for PDF, Docs, and Images.</p>
+            </div>
+
+            <div class="card disabled">
+                <div style="display:flex; justify-content:space-between; width:100%; align-items: flex-start;">
+                    <div class="card-icon-box"><i class="fa-solid fa-pen-nib"></i></div>
+                    <span class="badge badge-soon">Soon</span>
+                </div>
+                <h3>AI Writer</h3>
+                <p>Generate scripts, blogs, and stories instantly.</p>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- 1. PAGE TRANSITION LOGIC ---
+        // On Load: Fade In
+        window.addEventListener('DOMContentLoaded', () => {
+            document.body.classList.add('loaded');
+        });
+
+        // On Navigation: Fade Out then Go
+        function transitionTo(url) {
+            document.body.classList.remove('loaded'); // Trigger fade out
+            setTimeout(() => {
+                window.location.href = url; // Go to new page after 400ms
+            }, 400);
+        }
+
+        // --- 2. THEME LOGIC ---
+        const htmlEl = document.documentElement;
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+
+        if (localStorage.getItem('theme') === 'dark') setTheme('dark');
+        else setTheme('light');
+
+        function toggleTheme() {
+            if (htmlEl.getAttribute('data-theme') === 'dark') setTheme('light');
+            else setTheme('dark');
+        }
+
+        function setTheme(mode) {
+            htmlEl.setAttribute('data-theme', mode);
+            localStorage.setItem('theme', mode);
+            if (mode === 'dark') {
+                themeIcon.className = "fa-solid fa-moon";
+                themeText.innerText = "Dark Mode";
+            } else {
+                themeIcon.className = "fa-solid fa-sun";
+                themeText.innerText = "Light Mode";
+                
+            }
+        }
+
+        // --- 3. PARTICLE ENGINE (Denser) ---
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let particlesArray;
+        let mouse = { x: null, y: null, radius: 120 };
+
+        window.addEventListener('mousemove', function(event) {
+            mouse.x = event.x;
+            mouse.y = event.y;
+        });
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initParticles();
+        }
+        window.addEventListener('resize', resize);
+
+        class Particle {
+            constructor() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.size = Math.random() * 2 + 0.5; 
+                this.baseX = this.x;
+                this.baseY = this.y;
+                this.density = (Math.random() * 30) + 1; 
+                this.speedX = (Math.random() * 0.5 - 0.25); 
+                this.speedY = (Math.random() * 0.5 - 0.25);
+            }
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+                if (this.x > canvas.width || this.x < 0) this.speedX = -this.speedX;
+                if (this.y > canvas.height || this.y < 0) this.speedY = -this.speedY;
+
+                let dx = mouse.x - this.x;
+                let dy = mouse.y - this.y;
+                let distance = Math.sqrt(dx*dx + dy*dy);
+                
+                if (distance < mouse.radius) {
+                    const forceDirectionX = dx / distance;
+                    const forceDirectionY = dy / distance;
+                    const force = (mouse.radius - distance) / mouse.radius;
+                    const moveSpeed = 3; 
+                    this.x -= forceDirectionX * force * moveSpeed;
+                    this.y -= forceDirectionY * force * moveSpeed;
+                }
+            }
+            draw() {
+                const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+                ctx.fillStyle = isDark ? 'rgba(96, 165, 250, 0.8)' : 'rgba(37, 99, 235, 0.5)';
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particlesArray = [];
+            // DENSITY UPDATE: Changed 12000 to 4000 (More Particles!)
+            let numberOfParticles = (canvas.height * canvas.width) / 4000; 
+            for (let i = 0; i < numberOfParticles; i++) {
+                particlesArray.push(new Particle());
+            }
+        }
+
+        function animateParticles() {
+            requestAnimationFrame(animateParticles);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            for (let i = 0; i < particlesArray.length; i++) {
+                particlesArray[i].update();
+                particlesArray[i].draw();
+
+                for (let j = i; j < particlesArray.length; j++) {
+                    let dx = particlesArray[i].x - particlesArray[j].x;
+                    let dy = particlesArray[i].y - particlesArray[j].y;
+                    let distance = Math.sqrt(dx*dx + dy*dy);
+
+                    if (distance < 100) {
+                        const isDark = htmlEl.getAttribute('data-theme') === 'dark';
+                        ctx.beginPath();
+                        ctx.strokeStyle = isDark ? `rgba(96, 165, 250, ${0.2 - distance/600})` : `rgba(37, 99, 235, ${0.15 - distance/600})`;
+                        ctx.lineWidth = 0.5;
+                        ctx.moveTo(particlesArray[i].x, particlesArray[i].y);
+                        ctx.lineTo(particlesArray[j].x, particlesArray[j].y);
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        resize();
+        animateParticles();
+    </script>
+
+</body>
+</html>

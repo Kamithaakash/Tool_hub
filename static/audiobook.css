@@ -1,0 +1,120 @@
+.header-section { text-align: center; margin-bottom: 2rem; }
+.header-section h1 { font-size: 2.5rem; font-weight: 800; color: var(--text-main); }
+
+.card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    max-width: 600px; margin: 0 auto;
+}
+
+/* --- Modern Inputs --- */
+.form-group { margin-bottom: 1.5rem; }
+label { display: block; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-main); }
+
+/* CUSTOM DROPDOWNS */
+.real-select { display: none; } 
+.custom-select-container { position: relative; width: 100%; }
+
+.select-selected {
+    background-color: var(--input-bg);
+    border: 2px solid var(--card-border);
+    border-radius: 0.75rem;
+    color: var(--text-main);
+    padding: 1rem;
+    cursor: pointer;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.select-selected:after {
+    content: "\f078"; font-family: "Font Awesome 6 Free"; font-weight: 900;
+    font-size: 0.75rem; color: var(--text-sub); transition: 0.3s;
+}
+.select-selected.select-arrow-active:after { transform: rotate(180deg); }
+.select-selected:hover { border-color: var(--primary); }
+
+.select-items {
+    position: absolute;
+    background-color: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 0.75rem;
+    top: 110%; left: 0; right: 0; z-index: 99;
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    max-height: 0; opacity: 0; transition: 0.3s;
+}
+.select-items.show { max-height: 300px; opacity: 1; overflow-y: auto; }
+.select-items div {
+    color: var(--text-main); padding: 1rem; cursor: pointer; border-bottom: 1px solid var(--card-border);
+}
+.select-items div:hover { background-color: rgba(37, 99, 235, 0.1); color: var(--primary); }
+
+/* FILE UPLOAD */
+.file-upload-wrapper { position: relative; width: 100%; }
+.file-upload-input { position: absolute; left: 0; top: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; z-index: 2; }
+.file-upload-box {
+    background: var(--input-bg);
+    border: 2px dashed var(--card-border);
+    border-radius: 0.75rem;
+    padding: 2rem; text-align: center;
+    transition: 0.3s;
+    display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+}
+.file-upload-wrapper:hover .file-upload-box { border-color: var(--primary); background: rgba(37, 99, 235, 0.05); }
+.file-icon { font-size: 1.5rem; color: var(--primary); }
+
+/* BUTTON */
+.primary-btn {
+    width: 100%; padding: 1rem; background: var(--primary); color: white;
+    border: none; border-radius: 0.75rem; font-size: 1rem; font-weight: 600;
+    cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+}
+.primary-btn:hover { background: var(--primary-hover); transform: translateY(-2px); }
+
+/* ... (Keep your existing CSS) ... */
+
+/* --- WAVEFORM PLAYER --- */
+.waveform-container {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    background: rgba(0, 0, 0, 0.03); /* Subtle grey bg */
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid var(--card-border);
+    margin-bottom: 15px;
+}
+
+[data-theme="dark"] .waveform-container {
+    background: rgba(255, 255, 255, 0.05); /* Subtle white bg for dark mode */
+}
+
+/* Play Button */
+#playPauseBtn {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    border: none;
+    background-color: var(--primary);
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    flex-shrink: 0; /* Don't shrink */
+}
+
+#playPauseBtn:hover {
+    background-color: var(--primary-hover);
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+}
+
+/* The Wave Canvas */
+#waveform {
+    flex-grow: 1;
+    cursor: pointer;
+}

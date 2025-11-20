@@ -1,0 +1,88 @@
+/* =========================================
+   GLOBAL THEME & VARIABLES (Do not edit often)
+   ========================================= */
+:root {
+    /* Light Theme */
+    --bg-color: #f8fafc;
+    --text-main: #0f172a;
+    --text-sub: #475569;
+    --card-bg: #ffffff;
+    --card-border: #e2e8f0;
+    --primary: #2563eb;
+    --primary-hover: #1d4ed8;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --nav-bg: rgba(255, 255, 255, 0.9);
+    --input-bg: #f1f5f9;
+}
+
+[data-theme="dark"] {
+    /* Dark Theme */
+    --bg-color: #020617;
+    --text-main: #f8fafc;
+    --text-sub: #94a3b8;
+    --card-bg: #1e293b;
+    --card-border: #334155;
+    --primary: #3b82f6;
+    --primary-hover: #60a5fa;
+    --shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.7);
+    --nav-bg: rgba(2, 6, 23, 0.9);
+    --input-bg: #0f172a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', system-ui, sans-serif; transition: background 0.3s, color 0.3s, border-color 0.3s; }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+}
+
+/* --- Navbar (Shared) --- */
+.navbar {
+    width: 100%;
+    padding: 1rem 2rem;
+    background: var(--nav-bg);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--card-border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky; top: 0; z-index: 100;
+}
+.logo { font-size: 1.25rem; font-weight: 800; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 0.5rem; }
+
+.theme-toggle {
+    background: transparent;
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
+    border-radius: 99px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    display: flex; align-items: center; gap: 0.5rem;
+}
+.theme-toggle:hover { border-color: var(--primary); color: var(--primary); }
+
+.container { width: 100%; max-width: 1100px; margin: 0 auto; padding: 3rem 1.5rem; position: relative; z-index: 1; }
+.hidden { display: none; }
+
+/* =========================================
+   PAGE TRANSITIONS (Smooth Fade & Zoom)
+   ========================================= */
+
+/* 1. Default State: Page is hidden and slightly zoomed out */
+body {
+    opacity: 0;
+    transform: scale(0.98);
+    transition: opacity 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94), 
+                transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* 2. Loaded State: Page fades in and zooms to normal */
+body.loaded {
+    opacity: 1;
+    transform: scale(1);
+}
