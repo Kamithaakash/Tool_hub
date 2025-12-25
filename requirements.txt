@@ -1,4 +1,8 @@
 Flask
 flask[async]
 edge-tts
-gunicorn
+rembg
+Pillow
+qrcode[pil]
+pdfplumber
+python-docx
