@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='audiobook.css') }}"> <!-- Reusing Form Styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Specific styles for QR Preview */
+        .qr-preview-box {
+            background: white; /* QR needs white background */
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        .qr-preview-box img {
+            max-width: 250px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fa-solid fa-sun" id="themeIcon"></i>
+            <span id="themeText">Light Mode</span>
+        </button>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <div class="header-section">
+            <h1>QR Code Generator</h1>
+        </div>
+
+        <div class="card">
+            
+            <div class="form-group">
+                <label>Enter Text or URL</label>
+                <input type="text" id="qrInput" placeholder="https://www.google.com" style="width: 100%; padding: 15px; border-radius: 10px; border: 2px solid var(--card-border); background: var(--input-bg); color: var(--text-main); outline: none;">
+            </div>
+
+            <button class="primary-btn" id="generateBtn" onclick="generateQR()">
+                <i class="fa-solid fa-qrcode"></i> Generate QR Code
+            </button>
+            
+            <p id="status" style="text-align: center; margin-top: 15px; color: var(--text-sub);"></p>
+
+            <!-- RESULT AREA -->
+            <div id="resultArea" class="hidden" style="text-align: center;">
+                <div class="qr-preview-box">
+                    <img id="qrImage" alt="QR Code">
+                </div>
+                <br><br>
+                <a id="downloadLink" href="#" class="primary-btn" style="display: inline-block; width: auto; padding: 10px 30px; text-decoration: none;">
+                    <i class="fa-solid fa-download"></i> Download PNG
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- THEME LOGIC ---
+        const htmlEl = document.documentElement;
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        if (localStorage.getItem('theme') === 'dark') setTheme('dark'); else setTheme('light');
+        function toggleTheme() {
+            if (htmlEl.getAttribute('data-theme') === 'dark') setTheme('light'); else setTheme('dark');
+        }
+        function setTheme(mode) {
+            htmlEl.setAttribute('data-theme', mode);
+            localStorage.setItem('theme', mode);
+            themeIcon.className = mode === 'dark' ? "fa-solid fa-sun" : "fa-solid fa-moon";
+            themeText.innerText = mode === 'dark' ? "Light Mode" : "Dark Mode";
+        }
+        window.addEventListener('DOMContentLoaded', () => { document.body.classList.add('loaded'); });
+
+        // --- GENERATE LOGIC ---
+        async function generateQR() {
+            const text = document.getElementById('qrInput').value;
+            const btn = document.getElementById('generateBtn');
+            const status = document.getElementById('status');
+            const resultArea = document.getElementById('resultArea');
+
+            if (!text) { alert("Please enter some text or a link"); return; }
+
+            status.innerText = "Generating...";
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+            const formData = new FormData();
+            formData.append('data', text);
+
+            try {
+                const response = await fetch('/api/generate-qr', { method: 'POST', body: formData });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const imgUrl = URL.createObjectURL(blob);
+
+                    document.getElementById('qrImage').src = imgUrl;
+                    document.getElementById('downloadLink').href = imgUrl;
+                    // Create a filename based on text (truncated)
+                    const safeName = text.replace(/[^a-z0-9]/gi, '_').substring(0, 10);
+                    document.getElementById('downloadLink').download = `qr_${safeName}.png`;
+
+                    resultArea.classList.remove('hidden');
+                    status.innerText = "";
+                } else {
+                    const err = await response.json();
+                    status.innerText = "Error: " + (err.error || "Unknown Error");
+                }
+            } catch (e) {
+                status.innerText = "Network Error: " + e.message;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-qrcode"></i> Generate QR Code';
+        }
+    </script>
+</body>
+</html>

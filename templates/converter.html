@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF to Word Converter</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='global.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='audiobook.css') }}"> <!-- Reuse styles -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <nav class="navbar">
+        <a href="/" class="logo"><i class="fa-solid fa-arrow-left"></i> Dashboard</a>
+        <button class="theme-toggle" onclick="toggleTheme()">
+            <i class="fa-solid fa-sun" id="themeIcon"></i>
+            <span id="themeText">Light Mode</span>
+        </button>
+    </nav>
+
+    <div class="container" style="max-width: 600px;">
+        <div class="header-section">
+            <h1>PDF to Word</h1>
+        </div>
+
+        <div class="card">
+            
+            <div class="form-group">
+                <label>Upload PDF Document</label>
+                <div class="file-upload-wrapper">
+                    <input type="file" id="fileInput" class="file-upload-input" accept=".pdf" onchange="updateFileName()">
+                    <div class="file-upload-box">
+                        <i class="fa-solid fa-file-pdf file-icon"></i>
+                        <span class="file-text" id="fileLabel">Click or Drag PDF here</span>
+                    </div>
+                </div>
+            </div>
+
+            <button class="primary-btn" id="convertBtn" onclick="convertPDF()">
+                <i class="fa-solid fa-file-word"></i> Convert to Word
+            </button>
+            
+            <p id="status" style="text-align: center; margin-top: 15px; color: var(--text-sub);"></p>
+
+            <!-- RESULT AREA -->
+            <div id="resultArea" class="hidden" style="margin-top: 30px; text-align: center;">
+                <h3 style="color: var(--primary); margin-bottom:10px;">Document Ready!</h3>
+                <i class="fa-solid fa-file-circle-check" style="font-size: 50px; color: var(--primary); margin-bottom: 20px;"></i>
+                <br>
+                <a id="downloadLink" href="#" class="primary-btn" style="display: inline-block; width: auto; padding: 10px 30px; text-decoration: none; background-color: #2b579a;">
+                    <i class="fa-solid fa-download"></i> Download .DOCX
+                </a>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        // --- THEME LOGIC ---
+        const htmlEl = document.documentElement;
+        const themeIcon = document.getElementById('themeIcon');
+        const themeText = document.getElementById('themeText');
+        if (localStorage.getItem('theme') === 'dark') setTheme('dark'); else setTheme('light');
+        function toggleTheme() { if (htmlEl.getAttribute('data-theme') === 'dark') setTheme('light'); else setTheme('dark'); }
+        function setTheme(mode) {
+            htmlEl.setAttribute('data-theme', mode);
+            localStorage.setItem('theme', mode);
+            themeIcon.className = mode === 'dark' ? "fa-solid fa-sun" : "fa-solid fa-moon";
+            themeText.innerText = mode === 'dark' ? "Light Mode" : "Dark Mode";
+        }
+        window.addEventListener('DOMContentLoaded', () => { document.body.classList.add('loaded'); });
+
+        // --- FILE UI ---
+        function updateFileName() {
+            const input = document.getElementById('fileInput');
+            const label = document.getElementById('fileLabel');
+            if (input.files.length > 0) {
+                label.innerText = "📄 " + input.files[0].name;
+                label.classList.add('active');
+            }
+        }
+
+        // --- CONVERT LOGIC ---
+        async function convertPDF() {
+            const file = document.getElementById('fileInput').files[0];
+            const btn = document.getElementById('convertBtn');
+            const status = document.getElementById('status');
+            const resultArea = document.getElementById('resultArea');
+
+            if (!file) { alert("Please upload a PDF file"); return; }
+
+            status.innerText = "Converting PDF... Please wait.";
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+            resultArea.classList.add('hidden');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch('/api/convert-pdf', { method: 'POST', body: formData });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const docUrl = URL.createObjectURL(blob);
+
+                    document.getElementById('downloadLink').href = docUrl;
+                    document.getElementById('downloadLink').download = file.name.replace('.pdf', '.docx');
+                    
+                    resultArea.classList.remove('hidden');
+                    status.innerText = "";
+                } else {
+                    const err = await response.json();
+                    status.innerText = "Error: " + (err.error || "Unknown Error");
+                }
+            } catch (e) {
+                status.innerText = "Network Error: " + e.message;
+            }
+
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-file-word"></i> Convert to Word';
+        }
+    </script>
+</body>
+</html>

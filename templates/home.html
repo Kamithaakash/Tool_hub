@@ -21,43 +21,50 @@
 
     <div class="container">
         <div class="header-section">
-            <h1>Creative Tools</h1>
-            <p>Next-generation AI tools for content creators. Select a module below to begin.</p>
+            <h1>Create Faster.</h1>
+            <p>A complete suite of AI-powered tools for modern creators.</p>
         </div>
 
-        <div class="grid-menu">
+        <div class="bento-grid">
             
-            <div class="card" onclick="transitionTo('/audiobook')" style="cursor: pointer;">
-                <div style="display:flex; justify-content:space-between; width:100%; align-items: flex-start;">
+            <div class="card card-wide" onclick="transitionTo('/audiobook')" style="cursor: pointer;">
+                <span class="badge badge-active">Most Popular</span>
+                <div>
                     <div class="card-icon-box"><i class="fa-solid fa-headphones-simple"></i></div>
-                    <span class="badge badge-new">Active</span>
+                    <h3>Audiobook Studio</h3>
+                    <p>Transform text documents into professional, human-like speech using advanced Neural AI.</p>
                 </div>
-                <h3>Audiobook Studio</h3>
-                <p>Convert text into professional, human-like speech using Neural AI.</p>
             </div>
 
-            <div class="card disabled">
-                <div style="display:flex; justify-content:space-between; width:100%; align-items: flex-start;">
-                    <div class="card-icon-box"><i class="fa-solid fa-file-arrow-up"></i></div>
-                    <span class="badge badge-soon">Soon</span>
+            <div class="card card-square" onclick="transitionTo('/remove-background')" style="cursor: pointer;">
+                <span class="badge badge-active">New</span>
+                <div>
+                    <div class="card-icon-box"><i class="fa-solid fa-image"></i></div>
+                    <h3>BG Remover</h3>
+                    <p>Remove image backgrounds instantly.</p>
                 </div>
-                <h3>File Converter</h3>
-                <p>Universal converter for PDF, Docs, and Images.</p>
             </div>
 
-            <div class="card disabled">
-                <div style="display:flex; justify-content:space-between; width:100%; align-items: flex-start;">
-                    <div class="card-icon-box"><i class="fa-solid fa-pen-nib"></i></div>
-                    <span class="badge badge-soon">Soon</span>
+            <div class="card card-square" onclick="transitionTo('/qrcode-generator')" style="cursor: pointer;">
+                <span class="badge badge-active">Tool</span>
+                <div>
+                    <div class="card-icon-box"><i class="fa-solid fa-qrcode"></i></div>
+                    <h3>QR Code</h3>
+                    <p>Generate codes for any link.</p>
                 </div>
-                <h3>AI Writer</h3>
-                <p>Generate scripts, blogs, and stories instantly.</p>
             </div>
 
-        </div>
+<!-- FILE CONVERTER (Now Active!) -->
+<div class="card card-wide" onclick="transitionTo('/file-converter')" style="cursor: pointer;">
+    <span class="badge badge-active">Beta</span>
+    <div>
+        <div class="card-icon-box"><i class="fa-solid fa-file-word"></i></div>
+        <h3>File Converter</h3>
+        <p>Convert PDF documents into editable Word files (.docx) instantly.</p>
     </div>
+</div>
 
-    <script>
+   <script>
         // --- 1. PAGE TRANSITION LOGIC ---
         // On Load: Fade In
         window.addEventListener('DOMContentLoaded', () => {
@@ -193,6 +200,5 @@
         resize();
         animateParticles();
     </script>
-
 </body>
 </html>
